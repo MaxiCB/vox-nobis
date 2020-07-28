@@ -1,5 +1,7 @@
 package com.maxicb.backend.controller;
 
+import com.maxicb.backend.dto.AuthResponse;
+import com.maxicb.backend.dto.LoginRequest;
 import com.maxicb.backend.dto.RegisterRequest;
 import com.maxicb.backend.service.AuthService;
 import lombok.AllArgsConstructor;
@@ -24,5 +26,10 @@ public class AuthController {
     public ResponseEntity verify(@PathVariable String token) {
         authService.verifyToken(token);
         return new ResponseEntity<>("Account Activated", HttpStatus.OK);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse register(@RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
     }
 }
