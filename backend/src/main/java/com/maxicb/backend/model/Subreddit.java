@@ -21,6 +21,7 @@ public class Subreddit {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SUB_GEN")
     private Long id;
     @NotBlank(message = "Subreddit name is required")
+    @Column(unique = true)
     private String name;
     @NotBlank(message = "Subreddit description is required")
     private String description;

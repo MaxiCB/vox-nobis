@@ -1,6 +1,7 @@
 package com.maxicb.backend.security;
 
 import com.maxicb.backend.exception.ActivationException;
+import io.jsonwebtoken.Claims;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 
 import io.jsonwebtoken.Jwts;
+import static io.jsonwebtoken.Jwts.parserBuilder;
 
 @Service
 public class JWTProvider {
@@ -33,11 +35,33 @@ public class JWTProvider {
         return Jwts.builder().setSubject(princ.getUsername()).signWith(getPrivKey()).compact();
     }
 
+    public boolean validateToken (String token) {
+        parserBuilder().setSigningKey(getPubKey()).build().parseClaimsJws(token);
+        return true;
+    }
+
     private PrivateKey getPrivKey () {
         try {
             return (PrivateKey) keystore.getKey("vox", "secret".toCharArray());
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new ActivationException("Exception occurred while retrieving public key");
         }
+    }
+
+    private PublicKey getPubKey () {
+        try {
+            return keystore.getCertificate("vox").getPublicKey();
+        } catch(KeyStoreException e) {
+            throw new ActivationException("Exception occurred retrieving public key");
+        }
+    }
+
+    public String getNameFromJWT(String token) {
+        Claims claims = parserBuilder()
+                .setSigningKey(getPubKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
     }
 }
