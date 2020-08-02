@@ -16,12 +16,12 @@ public class SubredditController {
 
     SubredditService subredditService;
 
-    @GetMapping
-    public List<SubredditDTO> getAllSubreddits () {
-        return subredditService.getAll();
+    @GetMapping("/{page}")
+    public List<SubredditDTO> getAllSubreddits (@PathVariable int page) {
+        return subredditService.getAll(page);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/sub/{id}")
     public SubredditDTO getSubreddit(@PathVariable Long id) {
         return subredditService.getSubreddit(id);
     }
