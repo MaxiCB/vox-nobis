@@ -41,7 +41,6 @@ public class PostService {
 
 //    Requires a post
     private PostResponse mapToResponse(Post post) {
-        PageRequest pageRequest = PageRequest.of(0, 5);
         return PostResponse.builder()
                 .postId(post.getPostId())
                 .postTitle(post.getPostTitle())
