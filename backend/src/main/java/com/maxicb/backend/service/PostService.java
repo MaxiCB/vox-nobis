@@ -9,6 +9,7 @@ import com.maxicb.backend.exception.UserNotFoundException;
 import com.maxicb.backend.model.*;
 import com.maxicb.backend.repository.*;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +40,6 @@ public class PostService {
         return false;
     }
 
-//    Requires a post
     private PostResponse mapToResponse(Post post) {
         return PostResponse.builder()
                 .postId(post.getPostId())
@@ -49,14 +49,13 @@ public class PostService {
                 .userName(post.getUser().getUsername())
                 .subredditName(post.getSubreddit().getName())
                 .voteCount(post.getVoteCount())
-                .commentCount(commentRepository.findByPost(post).size())
+                .commentCount(commentRepository.findAllByPost(post).size())
                 .duration(TimeAgo.using(post.getCreationDate().toEpochMilli()))
                 .upVote(checkVoteType(post, VoteType.UPVOTE))
                 .downVote(checkVoteType(post, VoteType.DOWNVOTE))
                 .build();
     }
 
-//    Requires a post, subreddit, currentUser
     private Post mapToPost(PostRequest postRequest) {
         Subreddit subreddit = subredditRepository.findByName(postRequest.getSubredditName())
                 .orElseThrow(() -> new SubredditNotFoundException(postRequest.getSubredditName()));
@@ -77,11 +76,8 @@ public class PostService {
         return mapToResponse(postRepository.save(mapToPost(postRequest)));
     }
 
-    public List<PostResponse> getAllPost() {
-        return StreamSupport
-                .stream(postRepository.findAll().spliterator(), false)
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<PostResponse> getAllPost(Integer page) {
+        return postRepository.findAll(PageRequest.of(page, 100)).map(this::mapToResponse);
     }
 
     public PostResponse findByID (Long id) {
@@ -90,19 +86,19 @@ public class PostService {
         return mapToResponse(post);
     }
 
-    public List<PostResponse> getPostsBySubreddit(Long id) {
+    public Page<PostResponse> getPostsBySubreddit(Integer page, Long id) {
         Subreddit subreddit = subredditRepository.findById(id)
                 .orElseThrow(() -> new SubredditNotFoundException("Subreddit not found with id: " + id));
-        return subreddit.getPosts().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return postRepository
+                .findAllBySubreddit(subreddit, PageRequest.of(page, 100))
+                .map(this::mapToResponse);
     }
 
-    public List<PostResponse> getPostsByUsername(String username) {
+    public Page<PostResponse> getPostsByUsername(String username, Integer page) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
-        return postRepository.findByUser(user).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return postRepository
+                .findByUser(user, PageRequest.of(page, 100))
+                .map(this::mapToResponse);
     }
 }

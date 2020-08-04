@@ -12,6 +12,8 @@ import com.maxicb.backend.repository.CommentRepository;
 import com.maxicb.backend.repository.PostRepository;
 import com.maxicb.backend.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,21 +56,15 @@ public class CommentService {
         return mapToResponse(commentRepository.save(mapToComment(commentRequest)));
     }
 
-    public List<CommentResponse> getCommentsForPost(Long id) {
+    public Page<CommentResponse> getCommentsForPost(Long id, Integer page) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFoundException("Post not found with id: " + id));
-        return commentRepository.findByPost(post)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return commentRepository.findByPost(post, PageRequest.of(page, 100)).map(this::mapToResponse);
     }
 
-    public List<CommentResponse> getCommentsForUser(Long id) {
+    public Page<CommentResponse> getCommentsForUser(Long id, Integer page) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-        return commentRepository.findAllByUser(user)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return commentRepository.findAllByUser(user, PageRequest.of(page, 100)).map(this::mapToResponse);
     }
 }

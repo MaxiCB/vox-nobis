@@ -6,6 +6,7 @@ import com.maxicb.backend.exception.SubredditNotFoundException;
 import com.maxicb.backend.model.Subreddit;
 import com.maxicb.backend.repository.SubredditRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,12 +44,9 @@ public class SubredditService {
     }
 
     @Transactional(readOnly = true)
-    public List<SubredditDTO> getAll(int page) {
-        PageRequest pageRequest = PageRequest.of(page, 100);
-        return StreamSupport
-                .stream(subredditRepository.findAll(pageRequest).spliterator(), false)
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    public Page<SubredditDTO> getAll(Integer page) {
+        return subredditRepository.findAll(PageRequest.of(page, 100))
+                .map(this::mapToDTO);
     }
 
     @Transactional

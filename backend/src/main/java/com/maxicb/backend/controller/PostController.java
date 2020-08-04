@@ -4,11 +4,13 @@ import com.maxicb.backend.dto.PostRequest;
 import com.maxicb.backend.dto.PostResponse;
 import com.maxicb.backend.service.PostService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -17,14 +19,13 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<Void> addPost(@RequestBody PostRequest postRequest) {
-        postService.save(postRequest);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<PostResponse> addPost(@RequestBody PostRequest postRequest) {
+        return new ResponseEntity<>(postService.save(postRequest), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAllPost() {
-        return new ResponseEntity<>(postService.getAllPost(), HttpStatus.OK);
+    public ResponseEntity<Page<PostResponse>> getAllPost(@RequestParam Optional<Integer> page) {
+        return new ResponseEntity<>(postService.getAllPost(page.orElse(0)), HttpStatus.OK);
     }
 
     @GetMapping("{id}")
@@ -33,15 +34,12 @@ public class PostController {
     }
     
     @GetMapping("/sub/{id}")
-    public ResponseEntity<List<PostResponse>> getPostsBySubreddit(@PathVariable Long id) {
-        return new ResponseEntity<>(postService.getPostsBySubreddit(id), HttpStatus.OK);
+    public ResponseEntity<Page<PostResponse>> getPostsBySubreddit(@PathVariable Long id, @RequestParam Optional<Integer> page) {
+        return new ResponseEntity<>(postService.getPostsBySubreddit(page.orElse(0), id), HttpStatus.OK);
     }
 
-//    Need to handle cases where username seems to be Int when it is a string
-//    Causes errors fetching posts
-//    IE - Username: 22222
     @GetMapping("/user/{name}")
-    public ResponseEntity<List<PostResponse>> getPostsByUsername(@PathVariable String username) {
-        return new ResponseEntity<>(postService.getPostsByUsername(username), HttpStatus.OK);
+    public ResponseEntity<Page<PostResponse>> getPostsByUsername(@PathVariable("name") String username, @RequestParam Optional<Integer> page) {
+        return new ResponseEntity<>(postService.getPostsByUsername(username, page.orElse(0)), HttpStatus.OK);
     }
 }

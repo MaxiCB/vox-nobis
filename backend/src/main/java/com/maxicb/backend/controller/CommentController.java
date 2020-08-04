@@ -4,11 +4,13 @@ import com.maxicb.backend.dto.CommentRequest;
 import com.maxicb.backend.dto.CommentResponse;
 import com.maxicb.backend.service.CommentService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -22,12 +24,12 @@ public class CommentController {
     }
 
     @GetMapping("/post/{id}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByPost(@PathVariable Long id) {
-        return new ResponseEntity<>(commentService.getCommentsForPost(id), HttpStatus.OK);
+    public ResponseEntity<Page<CommentResponse>> getCommentsByPost(@PathVariable("id") Long id, @RequestParam Optional<Integer> page) {
+        return new ResponseEntity<>(commentService.getCommentsForPost(id, page.orElse(0)), HttpStatus.OK);
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<List<CommentResponse>> getCommentsByUser(@PathVariable Long id) {
-        return new ResponseEntity<>(commentService.getCommentsForUser(id), HttpStatus.OK);
+    public ResponseEntity<Page<CommentResponse>> getCommentsByUser(@PathVariable("id") Long id,@RequestParam Optional<Integer> page) {
+        return new ResponseEntity<>(commentService.getCommentsForUser(id, page.orElse(0)), HttpStatus.OK);
     }
 }
