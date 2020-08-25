@@ -2,10 +2,12 @@ package com.maxicb.backend.service;
 
 import com.maxicb.backend.dto.AuthResponse;
 import com.maxicb.backend.dto.LoginRequest;
+import com.maxicb.backend.dto.RefreshTokenRequest;
 import com.maxicb.backend.dto.RegisterRequest;
 import com.maxicb.backend.exception.ActivationException;
 import com.maxicb.backend.model.AccountVerificationToken;
 import com.maxicb.backend.model.NotificationEmail;
+import com.maxicb.backend.model.RefreshToken;
 import com.maxicb.backend.model.User;
 import com.maxicb.backend.repository.TokenRepository;
 import com.maxicb.backend.repository.UserRepository;
@@ -39,6 +41,7 @@ public class AuthService {
     MailBuilder mailBuilder;
     AuthenticationManager authenticationManager;
     JWTProvider jwtProvider;
+    RefreshTokenService refreshTokenService;
 
     @Transactional
     public void register(RegisterRequest registerRequest) {
@@ -65,13 +68,20 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + principal.getUsername()));
     }
 
+    public AuthResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        refreshTokenService.validateToken(refreshTokenRequest.getRefreshToken());
+        String token = jwtProvider.generateTokenWithUsername(refreshTokenRequest.getUsername());
+        return new AuthResponse(token, refreshTokenService.generateRefreshToken().getToken(), Instant.now().plusMillis(jwtProvider.getJwtExpirationMillis()), refreshTokenRequest.getUsername());
+    }
+
     public AuthResponse login (LoginRequest loginRequest) {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String authToken = jwtProvider.generateToken(authenticate);
-        return new AuthResponse(authToken, loginRequest.getUsername());
+        String refreshToken = refreshTokenService.generateRefreshToken().getToken();
+        return new AuthResponse(authToken, refreshToken, Instant.now().plusMillis(jwtProvider.getJwtExpirationMillis()), loginRequest.getUsername());
     }
 
     private String encodePassword(String password) {

@@ -1,6 +1,5 @@
 package com.maxicb.backend.controller;
 
-import com.maxicb.backend.dto.ErrorResponseDTO;
 import com.maxicb.backend.dto.SubredditDTO;
 import com.maxicb.backend.service.SubredditService;
 import lombok.AllArgsConstructor;
